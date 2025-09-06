@@ -1,0 +1,68 @@
+/*
+   Project: Smart Home Automation
+   Platform: Arduino + ESP8266 + Blynk App
+   Author: Vinay Giri (Internship Project)
+   -----------------------------
+   Idea:
+   - Control home appliances (like a bulb and a fan) from your mobile phone
+   - Arduino acts as the brain
+   - ESP8266 connects Arduino to the internet
+   - Relay works like an ON/OFF switch for appliances
+*/
+
+// include the libraries needed for ESP8266 + Blynk
+#include <ESP8266_Lib.h>
+#include <BlynkSimpleShieldEsp8266.h>
+#include <SoftwareSerial.h>
+
+// Enter your own Blynk token (from the Blynk app)
+#define BLYNK_AUTH_TOKEN "YourAuthTokenHere"
+
+// Your WiFi details
+char ssid[] = "YourWiFiName";      // WiFi Name
+char pass[] = "YourWiFiPassword";  // WiFi Password
+
+// We connect ESP8266 on Arduino pins 2 & 3
+SoftwareSerial EspSerial(2, 3); // RX = 2, TX = 3
+ESP8266 wifi(&EspSerial);
+
+// Appliances connected through relay
+int relay1 = 5; // Relay for Bulb
+int relay2 = 6; // Relay for Fan
+
+// When we press Button in Blynk app (V1 = bulb, V2 = fan)
+BLYNK_WRITE(V1) {
+  int value = param.asInt();       // Read value (0 or 1)
+  digitalWrite(relay1, value);     // Control relay
+}
+
+BLYNK_WRITE(V2) {
+  int value = param.asInt();
+  digitalWrite(relay2, value);
+}
+
+void setup() {
+  // Start Serial monitor
+  Serial.begin(9600);
+
+  // Relay pins as OUTPUT
+  pinMode(relay1, OUTPUT);
+  pinMode(relay2, OUTPUT);
+
+  // Turn everything OFF at start
+  digitalWrite(relay1, LOW);
+  digitalWrite(relay2, LOW);
+
+  // Start ESP8266
+  EspSerial.begin(9600);
+
+  // Connect Arduino to Blynk App through WiFi
+  Blynk.begin(BLYNK_AUTH_TOKEN, wifi, ssid, pass);
+
+  Serial.println("Setup done. Connect your phone to Blynk app!");
+}
+
+void loop() {
+  // Keeps Blynk running
+  Blynk.run();
+}
